@@ -1,4 +1,6 @@
-(load "eval.scm")
+;;;; This module defines functions useful for writing unittest in
+;;;; Scheme.
+
 
 (define (is-same-type? a b)
   (cond ((and (null? a) (not (null? b))) #f)
@@ -15,6 +17,7 @@
 	  ((symbol? a) (eq? a b))
 	  ((number? a) (= a b))
 	  ((string? a) (string=? a b))
+	  ((boolean? a) (boolean? b))
 	  ((pair? a) (and (list-eq? (car a) (car b))
 			  (list-eq? (cdr a) (cdr b))))
 	  (else (error "Unexpected type in list-eq?"))))
@@ -22,13 +25,12 @@
       'ok
       (error "expect-eq:" actual expected)))
 
-(let ((output (expand-clauses '())))
-  (expect-eq output 'false))
+(define (expect-true a)
+  (if a
+      'ok
+      (error "expect-true:" a)))
 
-(let ((output (expand-clauses '((else 1)))))
-  (expect-eq output 1))
-
-(let ((output (expand-clauses '((else (first-op)
-				      (second-op))))))
-  (expect-eq output '(begin (first-op)
-			    (second-op))))
+(define (expect-false a)
+  (if (not a)
+      'ok
+      (error "expect-false:" a)))

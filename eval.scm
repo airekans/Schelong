@@ -35,22 +35,27 @@
           "Unknown procedure type -- APPLY" procedure))))
 
 
-
+;;;; list-of-values is used in eval an application.
+;;;; It's used in evaluated the arguments.
 (define (list-of-values exps env)
   (if (no-operands? exps)
       '()
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
+;;;; list-of-values-lr-order is used to evaluated the
+;;;; argument of an application in LR order.
 (define (list-of-values-lr-order exps env)
   (if (no-operands? exps)
       '()
+      ;; The LR order is specified at the let variables.
       (let ((first (eval (first-operand exps) env))
 	    (rest (list-of-values-lr-order (rest-operands exps) env)))
 	(cons first rest))))
 
 
 ;;;; Handling of the special forms
+;;;; If expression
 (define (eval-if exp env)
   (if (true? (eval (if-predicate exp) env))
       (eval (if-consequent exp) env)
