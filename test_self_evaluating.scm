@@ -2,9 +2,6 @@
 (load "eval.scm")
 
 
-(define true #t)
-(define false #f)
-
 (let ((output (self-evaluating? 1)))
   (expect-eq true output))
 

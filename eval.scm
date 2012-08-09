@@ -14,6 +14,8 @@
         ((begin? exp) 
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
+	((and? exp) (eval-and exp env))
+	((or? exp) (eval-or exp env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -33,6 +35,11 @@
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
+
+;;;; Data-dispatch style of eval
+(define (eval-dispatch exp env)
+  ;; TODO: finish this function
+  'false)
 
 
 ;;;; list-of-values is used in eval an application.
@@ -80,6 +87,22 @@
                     env)
   'ok)
 
+(define (eval-and exp env)
+  (define (eval-and-predicates predicates)
+    (cond ((null? predicates) true)
+	  ((last-predicate? predicates)
+	   (eval (first-predicate predicates) env))
+	  ((true? (eval (first-predicate predicates)) env)
+	   (eval-and-predicates (rest-predicate predicates)))
+	  (else false)))
+  (eval-and-predicates (and-predicates exp)))
+
+(define (eval-or exp env)
+  ())
+
+
+(define true #t)
+(define false #f)
 
 ;;;; Syntax representation
 (define (self-evaluating? exp)
@@ -184,4 +207,19 @@
                      (sequence->exp (cond-actions first))
                      (expand-clauses rest))))))
 
+;;; and expression
+(define (and? exp)
+  (tagged-list? exp 'and))
 
+(define (and-predicates exp)
+  (cdr exp))
+(define (last-predicate? predicates)
+  (null? (cdr predicates)))
+(define (first-predicate predicates)
+  (car predicates))
+(define (rest-predicate predicates)
+  (cdr predicates))
+
+;;; or expression
+(define (or? exp)
+  (tagged-list? exp 'or))
