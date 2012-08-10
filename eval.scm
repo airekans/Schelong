@@ -15,7 +15,7 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
 	((and? exp) (eval-and exp env))
-	((or? exp) (eval-or exp env))
+;	((or? exp) (eval-or exp env))  ; or exp is not supportted yet
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))

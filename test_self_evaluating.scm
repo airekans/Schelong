@@ -16,3 +16,9 @@
 
 (let ((output (self-evaluating? '(a b c))))
   (expect-eq false output))
+
+;;;; Test eval self-evaluating
+(expect-eq 1 (eval 1 '()))
+(expect-eq "a" (eval "a" '()))
+(expect-eq "abc" (eval "abc" '()))
+
