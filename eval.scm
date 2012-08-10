@@ -92,7 +92,7 @@
     (cond ((null? predicates) true)
 	  ((last-predicate? predicates)
 	   (eval (first-predicate predicates) env))
-	  ((true? (eval (first-predicate predicates)) env)
+	  ((true? (eval (first-predicate predicates) env))
 	   (eval-and-predicates (rest-predicate predicates)))
 	  (else false)))
   (eval-and-predicates (and-predicates exp)))
@@ -103,6 +103,7 @@
 
 (define true #t)
 (define false #f)
+(define (true? a) (if a #t #f))
 
 ;;;; Syntax representation
 (define (self-evaluating? exp)
