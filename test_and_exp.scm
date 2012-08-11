@@ -13,4 +13,6 @@
 (expect-eq 1 (eval-and '(and 1) '()))
 (expect-eq 2 (eval-and '(and 1 2) '()))
 (expect-eq 3 (eval-and '(and 1 (and 2 3)) '()))
+(expect-eq 'false (eval-and '(and false) '()))
+(expect-eq 'false (eval-and '(and 1 false 2) '()))
 ;;; currently there is no way to let eval return a false.

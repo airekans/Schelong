@@ -56,8 +56,9 @@
   (if (no-operands? exps)
       '()
       ;; The LR order is specified at the let variables.
-      (let ((first (eval (first-operand exps) env))
-	    (rest (list-of-values-lr-order (rest-operands exps) env)))
+      ;; let can not ensure the evaluation order, but let* can.
+      (let* ((first (eval (first-operand exps) env))
+	     (rest (list-of-values-lr-order (rest-operands exps) env)))
 	(cons first rest))))
 
 
@@ -94,7 +95,7 @@
 	   (eval (first-predicate predicates) env))
 	  ((true? (eval (first-predicate predicates) env))
 	   (eval-and-predicates (rest-predicate predicates)))
-	  (else false)))
+	  (else 'false)))
   (eval-and-predicates (and-predicates exp)))
 
 (define (eval-or exp env)
@@ -103,12 +104,13 @@
 
 (define true #t)
 (define false #f)
-(define (true? a) (if a #t #f))
+(define (true? a) (not (eq? a 'false)))
 
 ;;;; Syntax representation
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
         ((string? exp) true)
+	((or (eq? 'true exp) (eq? 'false exp)) true)
         (else false)))
 
 (define (variable? exp) (symbol? exp))
