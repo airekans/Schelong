@@ -22,12 +22,12 @@
 	((and? exp) (eval-and exp env))
 ;	((or? exp) (eval-or exp env))  ; or exp is not supportted yet
         ((application? exp)
-         (apply (eval (operator exp) env)
+         (apply-proc (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
 
-(define (apply procedure arguments)
+(define (apply-proc procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
@@ -95,7 +95,7 @@
 
 (define (eval-and exp env)
   (define (eval-and-predicates predicates)
-    (cond ((null? predicates) true)
+    (cond ((null? predicates) 'true)
 	  ((last-predicate? predicates)
 	   (eval (first-predicate predicates) env))
 	  ((true? (eval (first-predicate predicates) env))
@@ -113,6 +113,9 @@
 (define (false? a) (eq? a 'false))
 
 ;;;; Syntax representation
+;;;
+;;; NOTE: Eval expressions other than self-evaluating should returns
+;;; self-evaluating, not a internal represented value.
 (define (self-evaluating? exp)
   (cond ((number? exp) true)
         ((string? exp) true)
@@ -310,4 +313,53 @@
     (scan (frame-variables frame)
           (frame-values frame))))
 
+;;;; Initial Env
+(define (setup-environment)
+  (let ((initial-env
+	 ;; Putting primitive procedure here also has performance
+	 ;; impact.
+	 ;; I would move them to anther places later.
+         (extend-environment (primitive-procedure-names)
+                             (primitive-procedure-objects)
+                             the-empty-environment)))
+    ;; The true and false binding can be put to the self-evaluating.
+    ;; If put here, true and false are searched through variable lookup,
+    ;; which is slow compared with self-evaluting.
+    ;; Also, I think define primitive types here would make this function
+    ;; not so maintainable as defining primitive types in other places.
+    ; (define-variable! 'true true initial-env)
+    ; (define-variable! 'false false initial-env)
+    initial-env))
+(define the-global-environment (setup-environment))
+
+
+;;;; Primitive procedure representation
+(define (primitive-procedure? proc)
+  (tagged-list? proc 'primitive))
+
+(define (primitive-implementation proc) (cadr proc))
+
+;;; primitive procedures in the language
+(define primitive-procedures
+  (list (list 'car car)
+        (list 'cdr cdr)
+        (list 'cons cons)
+        (list 'null? null?)
+        (list '+ +)
+	(list '- -)
+	(list '* *)
+	(list '/ /)
+	;; some IO procedures should be added
+	))
+(define (primitive-procedure-names)
+  (map car
+       primitive-procedures))
+
+(define (primitive-procedure-objects)
+  (map (lambda (proc) (list 'primitive (cadr proc)))
+       primitive-procedures))
+
+(define (apply-primitive-procedure proc args)
+  (apply         ; apply in underlying scheme
+   (primitive-implementation proc) args))
 
