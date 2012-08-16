@@ -313,25 +313,6 @@
     (scan (frame-variables frame)
           (frame-values frame))))
 
-;;;; Initial Env
-(define (setup-environment)
-  (let ((initial-env
-	 ;; Putting primitive procedure here also has performance
-	 ;; impact.
-	 ;; I would move them to anther places later.
-         (extend-environment (primitive-procedure-names)
-                             (primitive-procedure-objects)
-                             the-empty-environment)))
-    ;; The true and false binding can be put to the self-evaluating.
-    ;; If put here, true and false are searched through variable lookup,
-    ;; which is slow compared with self-evaluting.
-    ;; Also, I think define primitive types here would make this function
-    ;; not so maintainable as defining primitive types in other places.
-    ; (define-variable! 'true true initial-env)
-    ; (define-variable! 'false false initial-env)
-    initial-env))
-(define the-global-environment (setup-environment))
-
 
 ;;;; Primitive procedure representation
 (define (primitive-procedure? proc)
@@ -362,4 +343,24 @@
 (define (apply-primitive-procedure proc args)
   (apply         ; apply in underlying scheme
    (primitive-implementation proc) args))
+
+
+;;;; Initial Env
+(define (setup-environment)
+  (let ((initial-env
+	 ;; Putting primitive procedure here also has performance
+	 ;; impact.
+	 ;; I would move them to anther places later.
+         (extend-environment (primitive-procedure-names)
+                             (primitive-procedure-objects)
+                             the-empty-environment)))
+    ;; The true and false binding can be put to the self-evaluating.
+    ;; If put here, true and false are searched through variable lookup,
+    ;; which is slow compared with self-evaluting.
+    ;; Also, I think define primitive types here would make this function
+    ;; not so maintainable as defining primitive types in other places.
+    ; (define-variable! 'true true initial-env)
+    ; (define-variable! 'false false initial-env)
+    initial-env))
+(define the-global-environment (setup-environment))
 
