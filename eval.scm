@@ -20,7 +20,7 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
 	((and? exp) (eval-and exp env))
-;	((or? exp) (eval-or exp env))  ; or exp is not supportted yet
+	((or? exp) (eval-or exp env))  ; or exp is not supportted yet
         ((application? exp)
          (apply-proc (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -104,7 +104,15 @@
   (eval-and-predicates (and-predicates exp)))
 
 (define (eval-or exp env)
-  ())
+  (define (eval-or-predicates predicates)
+    (cond ((null? predicates) 'false)
+	  (else (let ((pred (eval (first-predicate predicates) env)))
+		  (cond ((last-predicate? predicates)
+			 pred)
+			((false? pred)
+			 (eval-or-predicates (rest-predicate predicates)))
+			(else pred))))))
+  (eval-or-predicates (or-predicates exp)))
 
 
 (define true #t)
@@ -235,6 +243,8 @@
 ;;; or expression
 (define (or? exp)
   (tagged-list? exp 'or))
+(define (or-predicates exp)
+  (cdr exp))
 
 ;;; procedure representation, the result of eval a lambda
 (define (make-procedure parameters body env)
