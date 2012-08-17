@@ -326,10 +326,15 @@
         (list 'cdr cdr)
         (list 'cons cons)
         (list 'null? null?)
+	;; arith ops
         (list '+ +)
 	(list '- -)
 	(list '* *)
 	(list '/ /)
+	;; comparison ops
+	(list '< (lambda (a b) (if (< a b) 'true 'false)))
+	(list '> (lambda (a b) (if (> a b) 'true 'false)))
+	(list '= (lambda (a b) (if (= a b) 'true 'false)))
 	;; some IO procedures should be added
 	))
 (define (primitive-procedure-names)
