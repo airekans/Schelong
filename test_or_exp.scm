@@ -14,3 +14,5 @@
 (expect-eq 1 (eval-or '(or 1 2) '()))
 (expect-eq 'true (eval-or '(or true false) '()))
 (expect-eq 'false (eval-or '(or false (and false)) '()))
+(expect-eq 'false (eval-or '(or false (and 1)) '()))
+ 

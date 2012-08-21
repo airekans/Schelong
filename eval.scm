@@ -20,7 +20,7 @@
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
 	((and? exp) (eval-and exp env))
-	((or? exp) (eval-or exp env))  ; or exp is not supportted yet
+	((or? exp) (eval-or exp env))
         ((application? exp)
          (apply-proc (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -210,6 +210,8 @@
   (eq? (cond-predicate clause) 'else))
 (define (cond-predicate clause) (car clause))
 (define (cond-actions clause) (cdr clause))
+(define (cond-=>? clause) (eq? '=> (cadr clause)))
+(define (cond-recipient clause) (caddr clause))
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
 
@@ -223,9 +225,20 @@
                 (sequence->exp (cond-actions first))
                 (error "ELSE clause isn't last -- COND->IF"
                        clauses))
-            (make-if (cond-predicate first)
-                     (sequence->exp (cond-actions first))
-                     (expand-clauses rest))))))
+	    (if (cond-=>? first)
+		(if (null? (caddr first))
+		    (error "=> clause doesn't have the recipient -- COND->IF")
+		    ;; a let expression, but right now I've not implement it
+		    (list (make-lambda '(__x)
+				       (list
+					(make-if '__x
+						;; application
+						(list (cond-recipient first) '__x)
+						(expand-clauses rest))))
+			  (cond-predicate first)))
+		(make-if (cond-predicate first)
+			 (sequence->exp (cond-actions first))
+			 (expand-clauses rest)))))))
 
 ;;; and expression
 (define (and? exp)
