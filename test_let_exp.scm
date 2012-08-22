@@ -35,3 +35,20 @@
 	       1 2)
 	     output))
 
+(let ((output (eval '(let ((x 1))
+		       x)
+		    '())))
+  (expect-eq 1 output))
+
+(let ((output (eval '(let ((x 1))
+		       2
+		       x)
+		    '())))
+  (expect-eq 1 output))
+
+(let ((output (eval '(let ((x 1)
+			   (y 2))
+		       x
+		       y)
+		    '())))
+  (expect-eq 2 output))
