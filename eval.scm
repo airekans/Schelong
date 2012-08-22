@@ -16,6 +16,7 @@
          (make-procedure (lambda-parameters exp)
                          (lambda-body exp)
                          env))
+	((let? exp) (eval (let->combination exp) env))
         ((begin? exp) 
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval (cond->if exp) env))
@@ -170,6 +171,20 @@
 
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
+
+;;; let expression
+(define (let? exp) (tagged-list? exp 'let))
+(define (let-bindings exp) (cadr exp))
+(define (let-body exp) (cddr exp))
+
+(define (let->combination exp)
+  (define (let-variables bindings)
+    (map car bindings))
+  (define (let-variable-values bindings)
+    (map cadr bindings))
+  (cons (make-lambda (let-variables (let-bindings exp))
+		     (let-body exp))
+	(let-variable-values (let-bindings exp))))
 
 ;;; If expression
 (define (if? exp) (tagged-list? exp 'if))
