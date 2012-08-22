@@ -1,3 +1,4 @@
+(load "unittest.scm")
 (load "eval.scm")
 
 (let ((output (expand-clauses '())))
@@ -29,3 +30,10 @@
 			"hello")))
 	       (+ 1 1))
 	     output))
+
+;;;; Test evaluating the cond expression
+(let ((output (eval '(cond (false 1)
+			  (2 => (lambda (x) x))
+			  (else "hello"))
+		    '())))
+  (expect-eq 2 output))
