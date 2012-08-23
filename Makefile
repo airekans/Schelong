@@ -6,7 +6,11 @@ test:
 		if [ -f $$f ]; then \
 			echo "running $$f"; \
 			scheme --quiet --load $$f < /dev/null; \
-			echo "running $$f successfully"; \
+			if [ $$? -eq 0 ]; then \
+				echo "running $$f successfully"; \
+			else \
+				echo "running $$f failed"; \
+			fi; \
 			echo ; \
 		fi \
 	done
