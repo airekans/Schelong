@@ -1,3 +1,5 @@
+(load "util.scm")
+
 ;;;; Two main procedures: eval and apply
 
 ;;; Except eval the self-evaluating and quotation,
@@ -138,6 +140,8 @@
   (tagged-list? exp 'quote))
 
 (define (text-of-quotation exp) (cadr exp))
+(define (make-quoted exp)
+  (list 'quote exp))
 
 (define (tagged-list? exp tag)
   (if (pair? exp)
@@ -185,6 +189,9 @@
   (cons (make-lambda (let-variables (let-bindings exp))
 		     (let-body exp))
 	(let-variable-values (let-bindings exp))))
+
+(define (make-let bindings exps)
+  (cons 'let (cons bindings exps)))
 
 ;;; If expression
 (define (if? exp) (tagged-list? exp 'if))
@@ -283,6 +290,26 @@
 (define (procedure-body p) (caddr p))
 (define (procedure-environment p) (cadddr p))
 
+;; procedure used to process internal definitions
+(define (defines-exps->let defines exps)
+  (let ((bindings (map (lambda (d)
+			 (list (definition-variable d)
+			       '*unassigned*))
+		       defines))
+	(assignments (map (lambda (d) (definition-value d))
+			  defines)))
+    (make-let bindings (concat assignments exps))))
+(define (scan-out-defines body)
+  (if (null? body)
+      '()
+      (let ((defines (filter (lambda (exp)
+			       (definition? exp))
+			     body))
+	    (exps (filter (lambda (exp)
+			    (not (definition? exp)))
+			  body)))
+	(defines-exps->let defines exps))))
+
 ;;;; Environment Representation
 ;;;
 ;;; Env is a list of frame, which is just a pair of list.
@@ -316,7 +343,10 @@
       (cond ((null? vars)
              (env-loop (enclosing-environment env)))
             ((eq? var (car vars))
-             (car vals))
+             (let ((val (car vals)))
+	       (if (eq? val '*unassigned*)
+		   (error "Uninitialized variable" var)
+		   val)))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable" var)
