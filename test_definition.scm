@@ -42,19 +42,19 @@
 					  (odd? x))
 				      (+ x 1)
 				      (+ x 2))))))
-  (expect-eq '(let ((even? *unassigned*)
-		    (odd? *unassigned*))
-		(set! even? (lambda (n)
+  (expect-eq '((let ((even? *unassigned*)
+		     (odd? *unassigned*))
+		 (set! even? (lambda (n)
+			       (if (= n 0)
+				   true
+				   (odd? (- n 1)))))
+		 (set! odd? (lambda (n)
 			      (if (= n 0)
-				  true
-				  (odd? (- n 1)))))
-		(set! odd? (lambda (n)
-			     (if (= n 0)
-				 false
-				 (even? (- n 1)))))
-		(if (or (even? x)
-			(odd? x))
-		    (+ x 1)
-		    (+ x 2)))
+				  false
+				  (even? (- n 1)))))
+		 (if (or (even? x)
+			 (odd? x))
+		     (+ x 1)
+		     (+ x 2))))
 	     output))
 

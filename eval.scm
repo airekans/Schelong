@@ -286,7 +286,9 @@
 
 ;;; procedure representation, the result of eval a lambda
 (define (make-procedure parameters body env)
-  (list 'procedure parameters body env)) ; env is a ptr to the parent env
+  (let ((body-without-defines (scan-out-defines body)))
+    ;; env is a ptr to the parent env
+    (list 'procedure parameters body-without-defines env)))
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
 (define (procedure-parameters p) (cadr p))
@@ -315,7 +317,7 @@
 			  body)))
 	(if (null? defines)
 	    body
-	    (defines-exps->let defines exps)))))
+	    (list (defines-exps->let defines exps))))))
 
 ;;;; Environment Representation
 ;;;
