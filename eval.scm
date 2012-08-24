@@ -154,6 +154,9 @@
 (define (assignment-variable exp) (cadr exp))
 (define (assignment-value exp) (caddr exp))
 
+(define (make-assignment var val)
+  (list 'set! var val))
+
 ;;; Definition
 (define (definition? exp)
   (tagged-list? exp 'define))
@@ -296,7 +299,9 @@
 			 (list (definition-variable d)
 			       '*unassigned*))
 		       defines))
-	(assignments (map (lambda (d) (definition-value d))
+	(assignments (map (lambda (d)
+			    (make-assignment (definition-variable d)
+					     (definition-value d)))
 			  defines)))
     (make-let bindings (concat assignments exps))))
 (define (scan-out-defines body)
@@ -308,7 +313,9 @@
 	    (exps (filter (lambda (exp)
 			    (not (definition? exp)))
 			  body)))
-	(defines-exps->let defines exps))))
+	(if (null? defines)
+	    body
+	    (defines-exps->let defines exps)))))
 
 ;;;; Environment Representation
 ;;;
