@@ -403,17 +403,19 @@
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
-        (list 'null? null?)
+        (list 'null? (lambda (l) (if (null? l) 'true 'false)))
 	;; arith ops
         (list '+ +)
 	(list '- -)
 	(list '* *)
 	(list '/ /)
+	(list '% remainder)
 	;; comparison ops
 	(list '< (lambda (a b) (if (< a b) 'true 'false)))
 	(list '> (lambda (a b) (if (> a b) 'true 'false)))
 	(list '= (lambda (a b) (if (= a b) 'true 'false)))
 	;; some IO procedures should be added
+	(list 'display display)
 	))
 (define (primitive-procedure-names)
   (map car
