@@ -22,13 +22,12 @@
 (let ((output (expand-clauses '(((+ 1 1) => fun)
 				((* 2 3) (f 2))
 				(else "hello")))))
-  (expect-eq '((lambda (__x)
-		(if __x
-		    (fun __x)
+  (expect-eq '(let ((*cond-x* (+ 1 1)))
+		(if *cond-x*
+		    (fun *cond-x*)
 		    (if (* 2 3)
 			(f 2)
 			"hello")))
-	       (+ 1 1))
 	     output))
 
 ;;;; Test evaluating the cond expression

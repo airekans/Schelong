@@ -193,6 +193,8 @@
 		     (let-body exp))
 	(let-variable-values (let-bindings exp))))
 
+(define (make-let-binding var val)
+  (list var val))
 (define (make-let bindings exps)
   (cons 'let (cons bindings exps)))
 
@@ -253,14 +255,13 @@
 	    (if (cond-=>? first)
 		(if (null? (caddr first))
 		    (error "=> clause doesn't have the recipient -- COND->IF")
-		    ;; a let expression, but right now I've not implement it
-		    (list (make-lambda '(__x)
-				       (list
-					(make-if '__x
-						;; application
-						(list (cond-recipient first) '__x)
-						(expand-clauses rest))))
-			  (cond-predicate first)))
+		    (make-let (list (make-let-binding '*cond-x*
+						      (cond-predicate first)))
+			      (list
+			       (make-if '*cond-x*
+					;; application
+					(list (cond-recipient first) '*cond-x*)
+					(expand-clauses rest)))))
 		(make-if (cond-predicate first)
 			 (sequence->exp (cond-actions first))
 			 (expand-clauses rest)))))))
