@@ -44,6 +44,15 @@
          (error
           "Unknown procedure type -- APPLY" procedure))))
 
+
+;;;; Analyze the expression first, then eval the generated procedure
+(define (eval-analyze exp env)
+  ((analyze exp) env))
+
+
+
+
+
 ;;;; Data-dispatch style of eval
 (define (eval-dispatch exp env)
   ;; TODO: finish this function
