@@ -21,4 +21,4 @@
        (if (even? n)
 	   (- n 1)
 	   n))
-     (range 1 10000))
+     (range 1 5000))

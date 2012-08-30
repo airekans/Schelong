@@ -56,7 +56,7 @@
 ;;  lambda has the form of (lambda (x y) (expr))
 (define (lambda? exp) (tagged-list? exp 'lambda))
 (define (lambda-parameters exp) (cadr exp))
-(define (lambda-body exp) (cddr exp))
+(define (lambda-body exp) (scan-out-defines (cddr exp)))
 
 (define (make-lambda parameters body)
   (cons 'lambda (cons parameters body)))
@@ -169,9 +169,8 @@
 
 ;;; procedure representation, the result of eval a lambda
 (define (make-procedure parameters body env)
-  (let ((body-without-defines (scan-out-defines body)))
-    ;; env is a ptr to the parent env
-    (list 'procedure parameters body-without-defines env)))
+  ;; env is a ptr to the parent env
+  (list 'procedure parameters body env))
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
 (define (procedure-parameters p) (cadr p))
