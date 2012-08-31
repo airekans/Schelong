@@ -64,7 +64,6 @@
         (bproc (analyze-sequence (lambda-body exp))))
     (lambda (env) (make-procedure vars bproc env))))
 
-
 (define (analyze-sequence exps)
   (define (sequentially proc1 proc2)
     (lambda (env) (proc1 env) (proc2 env)))
@@ -78,6 +77,43 @@
         (error "Empty sequence -- ANALYZE"))
     (loop (car procs) (cdr procs))))
 
+
+(define (analyze-and exp)
+  (define (sequentially pproc1 pproc2)
+    (lambda (env)
+      (if (true? (pproc1 env))
+	  (pproc2 env)
+	  'false)))
+  (define (loop first-pproc rest-pprocs)
+    (if (null? rest-pprocs)
+	first-pproc
+	(loop (sequentially first-pproc (car rest-pprocs))
+	      (cdr rest-pprocs))))
+  (let ((pprocs (map (lambda (p)
+		       (analyze p))
+		     (and-predicates exp))))
+    (if (null? pprocs)
+	(lambda (env) 'true)
+	(loop (car pprocs) (cdr pprocs)))))
+
+(define (analyze-or exp)
+  (define (sequentially pproc1 pproc2)
+    (lambda (env)
+      (let ((pred (pproc1 env)))
+	(if (false? pred)
+	    (pproc2 env)
+	    pred))))
+  (define (loop first-pproc rest-pprocs)
+    (if (null? rest-pprocs)
+	first-pproc
+	(loop (sequentially first-pproc (car rest-pprocs))
+	      (cdr rest-pprocs))))
+  (let ((pprocs (map (lambda (p)
+		       (analyze p))
+		     (or-predicates exp))))
+    (if (null? pprocs)
+	(lambda (env) 'false)
+	(loop (car pprocs) (cdr pprocs)))))
 
 (define (analyze-application exp)
   (let ((fproc (analyze (operator exp)))
