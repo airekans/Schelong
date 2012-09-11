@@ -1,7 +1,11 @@
 (load "eval.scm")
 ;(load "eval-analyze.scm")
 
-(define schelong-eval eval)
+;;; The schelong-eval must be actual-value instead of eval,
+;;; because eval merely return the object if it's a thunk.
+;;; And it's possible to return a thunk in the top level
+;;; read-write loop.
+(define schelong-eval actual-value)
 ;(define schelong-eval eval-analyze)
 
 (define input-prompt ";;; L-Eval input:")
