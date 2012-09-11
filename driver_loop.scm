@@ -1,11 +1,11 @@
-;(load "eval.scm")
-(load "eval-analyze.scm")
+(load "eval.scm")
+;(load "eval-analyze.scm")
 
-;(define schelong-eval eval)
-(define schelong-eval eval-analyze)
+(define schelong-eval eval)
+;(define schelong-eval eval-analyze)
 
-(define input-prompt ";;; M-Eval input:")
-(define output-prompt ";;; M-Eval value:")
+(define input-prompt ";;; L-Eval input:")
+(define output-prompt ";;; L-Eval value:")
 (define (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))

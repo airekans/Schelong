@@ -27,24 +27,60 @@
 	((and? exp) (eval-and exp env))
 	((or? exp) (eval-or exp env))
         ((application? exp)
-         (apply-proc (eval (operator exp) env)
-                (list-of-values (operands exp) env)))
+         (apply-proc (actual-value (operator exp) env)
+		     (operands exp)
+		     env))
         (else
          (error "Unknown expression type -- EVAL" exp))))
 
-(define (apply-proc procedure arguments)
+(define (apply-proc procedure arguments env)
   (cond ((primitive-procedure? procedure)
-         (apply-primitive-procedure procedure arguments))
+         (apply-primitive-procedure procedure
+				    (list-of-arg-values arguments env)))
         ((compound-procedure? procedure)
          (eval-sequence
            (procedure-body procedure)
            (extend-environment
              (procedure-parameters procedure)
-             arguments
+             (list-of-delayed-args arguments env)
              (procedure-environment procedure))))
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
+
+;;;; Lazy evaluation
+(define (actual-value exp env)
+  (force-it (eval exp env)))
+
+(define (force-it obj)
+  (if (thunk? obj)
+      (actual-value (thunk-exp obj) (thunk-env obj))
+      obj))
+
+(define (delay-it exp env)
+  (list 'thunk exp env))
+
+(define (thunk? obj)
+  (tagged-list? obj 'thunk))
+
+(define (thunk-exp thunk) (cadr thunk))
+
+(define (thunk-env thunk) (caddr thunk))
+
+
+(define (list-of-arg-values exps env)
+  (if (no-operands? exps)
+      '()
+      (cons (actual-value (first-operand exps) env)
+            (list-of-arg-values (rest-operands exps)
+                                env))))
+(define (list-of-delayed-args exps env)
+  (if (no-operands? exps)
+      '()
+      (cons (delay-it (first-operand exps) env)
+            (list-of-delayed-args (rest-operands exps)
+                                  env))))
+
 
 
 ;;;; Data-dispatch style of eval
@@ -76,7 +112,7 @@
 ;;;; Handling of the special forms
 ;;;; If expression
 (define (eval-if exp env)
-  (if (true? (eval (if-predicate exp) env))
+  (if (true? (actual-value (if-predicate exp) env))
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
 
