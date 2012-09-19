@@ -32,7 +32,9 @@
 
 ;;;; Test evaluating the cond expression
 (let ((output (eval '(cond (false 1)
-			  (2 => (lambda (x) x))
-			  (else "hello"))
+			   (2 => (lambda (x) x))
+			   (else "hello"))
 		    '())))
-  (expect-eq 2 output))
+  (expect-eq '(thunk *cond-x* (((*cond-x*)
+				(evaluated-thunk 2))))
+	     output))

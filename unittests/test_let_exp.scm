@@ -38,12 +38,18 @@
 (let ((output (eval '(let ((x 1))
 		       x)
 		    '())))
-  (expect-eq 1 output))
+  (expect-eq '(thunk 1 ()) output))
 
 (let ((output (eval '(let ((x 1))
 		       2
 		       x)
 		    '())))
+  (expect-eq '(thunk 1 ()) output))
+
+(let ((output (actual-value '(let ((x 1))
+			       2
+			       x)
+			    '())))
   (expect-eq 1 output))
 
 (let ((output (eval '(let ((x 1)
@@ -51,4 +57,11 @@
 		       x
 		       y)
 		    '())))
+  (expect-eq '(thunk 2 ()) output))
+
+(let ((output (actual-value '(let ((x 1)
+				   (y 2))
+			       x
+			       y)
+			    '())))
   (expect-eq 2 output))
