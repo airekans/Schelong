@@ -1,7 +1,7 @@
 all:
 
 test:
-	@for f in test_*; \
+	@for f in unittests/test_*; \
 	do \
 		if [ -f $$f ]; then \
 			echo "running $$f"; \
