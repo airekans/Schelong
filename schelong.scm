@@ -2,6 +2,6 @@
 exec scheme --silent --load "$0"
 |#
 
-(load "driver_loop.scm")
+(load "driver-loop.scm")
 
 (driver-loop)
