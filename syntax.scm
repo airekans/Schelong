@@ -207,3 +207,10 @@
   (tagged-list? proc 'primitive))
 
 (define (primitive-implementation proc) (cadr proc))
+
+;;;; Debugging support
+(define (break? exp)
+  (tagged-list? exp 'break))
+(define (debug? exp)
+  (tagged-list? exp 'debug-on-entry))
+
