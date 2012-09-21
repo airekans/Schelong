@@ -11,7 +11,8 @@
 ;;; the underlying language.
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
-	((break? exp) (break-proc env))
+	((break? exp) (eval-break exp env))
+	((debug? exp) (eval-debug exp env))
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
         ((assignment? exp) (eval-assignment exp env))
@@ -122,7 +123,7 @@
   (eval-or-predicates (or-predicates exp)))
 
 ;;;; Debugging procedure definitions
-(define (eval-break env)
+(define (eval-break exp env)
   (define input-prompt ";;; Debug-Eval input:")
   (define output-prompt ";;; Debug-Eval value:")
   (define (continue? exp) (tagged-list? exp 'continue))
@@ -136,13 +137,20 @@
 		 (debug-loop)))))
   (debug-loop))
 
-(define (insert-break lmd)
-  )
+(define (insert-break proc)
+  (let ((new-body (cons '(break)
+			(procedure-body proc))))
+    (make-procedure (procedure-parameters proc)
+		    new-body
+		    (procedure-environment proc))))
 
-(define (debug->set! exp env)
-  (if (variable? exp)
-      (let ((val (eval exp env)))
-	(if (lambda? val)
-	    ()
-	    (error "Not lambda -- DEBUG-ON-ENTRY" exp)))
-      (error "Not function name -- DEBUG-ON-ENTRY" exp)))
+(define (eval-debug exp env)
+  (let ((var (debug-procedure exp)))
+    (if (variable? var)
+	(let ((val (eval var env)))
+	  (if (compound-procedure? val)
+	      (begin
+		(set-variable-value! var (insert-break val) env)
+		'ok)
+	      (error "Not lambda -- DEBUG-ON-ENTRY" exp)))
+	(error "Not function name -- DEBUG-ON-ENTRY" exp))))
