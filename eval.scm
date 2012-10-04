@@ -9,7 +9,7 @@
 ;;; In other words, return the representation used in
 ;;; the interpreted language, not the representation in
 ;;; the underlying language.
-(define (eval exp env)
+(define (normal-eval exp env)
   (cond ((self-evaluating? exp) exp)
 	((break? exp) (eval-break exp env))
 	((debug? exp) (eval-debug exp env))
@@ -33,6 +33,7 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
+(define eval normal-eval)
 
 (define (apply-proc procedure arguments)
   (cond ((primitive-procedure? procedure)
@@ -123,28 +124,14 @@
   (eval-or-predicates (or-predicates exp)))
 
 ;;;; Debugging procedure definitions
-(define (eval-break exp env)
-  (define input-prompt ";;; Debug-Eval input:")
-  (define output-prompt ";;; Debug-Eval value:")
-  (define (continue? exp) (tagged-list? exp 'continue))
-  (define (debug-loop)
-    (prompt-for-input input-prompt)
-    (let ((input (read)))
-      (if (continue? input)
-	  'true
-	  (begin (announce-output output-prompt)
-		 (user-print (eval input env))
-		 (debug-loop)))))
-  (debug-loop))
-
-(define (insert-break proc)
-  (let ((new-body (cons '(break)
-			(procedure-body proc))))
-    (make-procedure (procedure-parameters proc)
-		    new-body
-		    (procedure-environment proc))))
-
 (define (eval-debug exp env)
+  (define (insert-break proc)
+    (let ((new-body (cons '(break)
+			  (procedure-body proc))))
+      (make-procedure (procedure-parameters proc)
+		      new-body
+		      (procedure-environment proc))))
+
   (let ((var (debug-procedure exp)))
     (if (variable? var)
 	(let ((val (eval var env)))
@@ -155,17 +142,39 @@
 	      (error "Not lambda -- DEBUG-ON-ENTRY" exp)))
 	(error "Not function name -- DEBUG-ON-ENTRY" exp))))
 
+(define (eval-break exp env)
+  (set! eval debug-eval)
+  'ok)
+
+
 (define (debug-eval exp env)
+  (define (switch-to-debug-mode) (set! eval debug-eval))
+  (define (switch-to-normal-mode) (set! eval normal-eval))
+  (define (no-debug-eval exp)
+    (switch-to-normal-mode)
+    (let ((val (eval exp env)))
+      (switch-to-debug-mode)
+      val))
+  
+  (define input-prompt ";;; Debug-Eval input:")
+  (define output-prompt ";;; Debug-Eval value:")
+  (define (continue? exp) (tagged-list? exp 'continue))
+  (define (next? exp) (tagged-list? exp 'next))
+  (define (step-in? exp) (tagged-list? exp 'step))
+  (define (debug-read)
+    (prompt-for-input input-prompt)
+    (let ((op (read)))
+      (cond ((continue? op)
+	     (begin (switch-to-normal-mode)
+		    (eval exp env)))
+	    ((next? op) (no-debug-eval exp))
+	    ((step-in? op) (normal-eval exp env))
+	    (else
+	     (begin (announce-output output-prompt)
+		    (user-print (no-debug-eval op))
+		    (debug-read))))))
+  
   (announce-output ";;; Debug Exp:")
   (user-print exp)
-  (let ((op (eval-break '(break) env)))
-    (cond ((continue? op)
-	   (begin (set! eval eval-exp)
-		  (eval exp env)))
-	  ((next? op)
-	   (begin (set! eval eval-exp)
-		  (let ((val (eval exp env)))
-		    (set! eval debug-eval)
-		    val)))
-	  ((step-in? op) (eval-exp exp env))
-	  (else (error "Unknown op -- DEBUG-EVAL" exp)))))
+  (debug-read))
+  
