@@ -3,7 +3,8 @@
 
 
 (define (is-same-type? a b)
-  (cond ((and (null? a) (not (null? b))) #f)
+  (cond	((and (eof-object? a) (not (eof-object? b))) #f)
+	((and (null? a) (not (null? b))) #f)
 	((and (char? a) (not (char? b))) #f)
 	((and (symbol? a) (not (symbol? b))) #f)
 	((and (number? a) (not (number? b))) #f)
@@ -14,6 +15,7 @@
 (define (expect-eq actual expected)
   (define (list-eq? a b)
     (cond ((not (is-same-type? a b)) #f)
+	  ((eof-object? a) #t)
 	  ((null? a) #t)
 	  ((char? a) (char=? a b))
 	  ((symbol? a) (eq? a b))
