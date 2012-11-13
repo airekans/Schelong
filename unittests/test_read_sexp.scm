@@ -30,15 +30,15 @@
 
 (let ((t (read-list s)))
   (expect-eq '() (token t))
-  (expect-eq '(0 0) (beg-cli t))
-  (expect-eq '(0 2) (end-cli t)))
+  (expect-eq '(0 0) (beg-lci t))
+  (expect-eq '(0 2) (end-lci t)))
 
 (set! s (make-stream (open-input-string "(  )")))
 
 (let ((t (read-list s)))
   (expect-eq '() (token t))
-  (expect-eq '(0 0) (beg-cli t))
-  (expect-eq '(0 4) (end-cli t)))
+  (expect-eq '(0 0) (beg-lci t))
+  (expect-eq '(0 4) (end-lci t)))
 
 (set! s (make-stream (open-input-string "(abc)")))
 (let ((t (read-list s)))
@@ -122,4 +122,12 @@
 (let ((t (read-sexp s)))
   (expect-eq '(123 (0 6) (0 9)) t))
 
+(set! s (make-stream (open-input-string "(define a 1)")))
+(let ((t (read-sexp s)))
+  (expect-eq '(((define (0 1) (0 7))
+		(a (0 8) (0 9))
+		(1 (0 10) (0 11))) (0 0) (0 12)) t))
 
+;;; Test read-sexps
+(set! s (make-stream (open-input-string "")))
+(expect-true (null? (read-sexps s)))

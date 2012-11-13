@@ -96,6 +96,14 @@
 	  ((char=? #\) c) (error "unbalanced parentheses"))
 	  (else (read-atom stream)))))
 
+(define (read-sexps stream)
+  (define (read-sexps-impl)
+    (let ((sexp (read-sexp stream)))
+      (if (null? sexp)
+	  '()
+	  (cons sexp (read-sexps-impl)))))
+  (read-sexps-impl))
+
 (define (read-list stream)
   (define (read-list-without-paren)
     (let ((c (stream-peek-char stream)))
