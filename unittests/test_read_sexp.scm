@@ -131,3 +131,16 @@
 ;;; Test read-sexps
 (set! s (make-stream (open-input-string "")))
 (expect-true (null? (read-sexps s)))
+
+(set! s (make-stream (open-input-string "  ")))
+(expect-true (null? (read-sexps s)))
+
+(set! s (make-stream (open-input-string "1")))
+(expect-eq '((1 (0 0) (0 1))) (read-sexps s))
+
+(set! s (make-stream (open-input-string "1 2 ")))
+(expect-eq '((1 (0 0) (0 1)) (2 (0 2) (0 3))) (read-sexps s))
+
+(set! s (make-stream (open-input-string "1 (add)")))
+(expect-eq '((1 (0 0) (0 1)) (((add (0 3) (0 6))) (0 2) (0 7)))
+	   (read-sexps s))
