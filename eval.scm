@@ -2,6 +2,7 @@
 (load "syntax.scm")
 (load "env.scm")
 
+
 ;;;; Two main procedures: eval and apply
 
 ;;; Except eval the self-evaluating and quotation,
@@ -54,6 +55,22 @@
 (define (eval-dispatch exp env)
   ;; TODO: finish this function
   'false)
+
+;;;; Procedures used to define a more general eval
+(define (make-handler type-op eval-op) (cons type-op eval-op))
+(define (handler-type-op handler) (car handler))
+(define (handler-eval-op handler) (cdr handler))
+
+(define (dispatch-eval exp env handlers eval)
+  (define (dispatch-eval-impl rest-handlers)
+    (if (null? rest-handlers)
+	(error "Unknown expression type -- EVAL" exp)
+	(let ((handler (car rest-handlers)))
+	  (if ((handler-type-op handler) exp)
+	      ((handler-eval-op handler) exp env eval)
+	      (dispatch-eval-impl (cdr rest-handlers))))))
+  (dispatch-eval-impl handlers))
+
 
 
 ;;;; list-of-values is used in eval an application.
